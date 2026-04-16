@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>人格测试生成器框架</title>
+  <style>
+    :root {
+      --primary: #C23A30;
+      --paper: #F5F0E6;
+      --ink: #1A1A1A;
+      --gold: #D4AF37;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    #app {
+      min-height: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+    .hidden { display: none !important; }
+
+    /* 首页 */
+    .home-screen {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 90vh; text-align: center;
+    }
+    .home-title { font-size: 72px; font-weight: 800; color: var(--primary); letter-spacing: -2px; }
+    .home-subtitle { font-size: 20px; color: rgba(26,26,26,.75); margin-top: 12px; font-weight: 500; }
+    .home-divider { width: 64px; height: 4px; background: var(--primary); border-radius: 2px; margin: 16px auto 40px; }
+    .home-card {
+      background: rgba(255,255,255,.62); border-radius: 18px; padding: 20px 24px; margin-bottom: 32px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.04);
+    }
+    .home-card p { font-size: 17px; color: rgba(26,26,26,.85); margin: 6px 0; }
+    .home-card .small { font-size: 13px; opacity: .65; }
+    .btn-primary {
+      display: block; width: 100%; max-width: 280px;
+      padding: 16px 24px; border-radius: 14px; border: none;
+      background: var(--primary); color: #fff; font-size: 18px; font-weight: 600;
+      text-align: center; text-decoration: none; cursor: pointer;
+      box-shadow: 0 8px 24px rgba(194,58,48,.25);
+      transition: transform .15s ease, background .15s ease;
+    }
+    .btn-primary:active { transform: translateY(1px); background: #a83228; }
+    .btn-secondary {
+      display: block; width: 100%; max-width: 280px; margin-top: 12px;
+      padding: 14px 24px; border-radius: 14px; border: 2px solid var(--primary);
+      background: rgba(255,255,255,.55); color: var(--primary); font-size: 16px; font-weight: 500;
+      text-align: center; text-decoration: none; cursor: pointer;
+    }
+    .btn-secondary:active { background: rgba(194,58,48,.08); }
+
+    /* 答题页 */
+    .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .quiz-header span { font-size: 13px; color: rgba(26,26,26,.5); }
+    .quiz-header .num { font-weight: 600; color: var(--primary); }
+    .progress-wrap { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(26,26,26,.08); margin-bottom: 28px; }
+    .progress-bar { height: 100%; background: var(--primary); border-radius: 999px; transition: width .35s ease; }
+    .question-tag { display: inline-block; padding: 6px 12px; border-radius: 999px; background: rgba(194,58,48,.08); color: var(--primary); font-size: 12px; font-weight: 600; margin-bottom: 14px; }
+    .question-title { font-size: 22px; font-weight: 700; line-height: 1.5; margin-bottom: 24px; }
+    .option-list { display: flex; flex-direction: column; gap: 12px; }
+    .option-btn { text-align: left; padding: 16px; border-radius: 14px; border: 2px solid rgba(26,26,26,.08); background: rgba(255,255,255,.55); cursor: pointer; font-size: 15px; color: rgba(26,26,26,.9); transition: all .15s ease; }
+    .option-btn:active { transform: scale(.985); border-color: rgba(194,58,48,.35); background: #fff; }
+    .option-label { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(26,26,26,.06); font-size: 12px; font-weight: 700; color: rgba(26,26,26,.6); margin-right: 10px; flex-shrink: 0; }
+
+    /* 结果页 */
+    .result-top { text-align: center; margin-bottom: 18px; }
+    .rarity-tag { display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+    .result-placeholder {
+      width: 200px; height: 200px; margin: 0 auto 16px; border-radius: 20px;
+      background: linear-gradient(135deg, #f5f0e6 0%, #e8e0d0 100%);
+      border: 4px solid rgba(255,255,255,.8); box-shadow: 0 10px 30px rgba(0,0,0,.1);
+      display: flex; align-items: center; justify-content: center; font-size: 80px;
+    }
+    .result-name { font-size: 30px; font-weight: 800; color: var(--primary); margin-bottom: 6px; }
+    .result-divider { width: 48px; height: 4px; background: var(--primary); border-radius: 2px; margin: 0 auto 20px; }
+    .result-card { background: rgba(255,255,255,.7); border: 1px solid rgba(26,26,26,.05); border-radius: 18px; padding: 18px; margin-bottom: 16px; }
+    .result-desc { font-size: 15px; color: rgba(26,26,26,.8); line-height: 1.7; margin-bottom: 14px; }
+    .result-note { border-left: 4px solid var(--primary); padding-left: 12px; background: rgba(194,58,48,.04); border-radius: 0 10px 10px 0; padding: 10px 12px; }
+    .result-note .label { font-size: 12px; color: rgba(26,26,26,.55); margin-bottom: 2px; }
+    .result-note .text { font-size: 14px; color: rgba(26,26,26,.9); font-weight: 500; }
+    .btn-ghost { display: block; width: 100%; padding: 14px; border-radius: 12px; border: none; background: transparent; color: rgba(26,26,26,.55); font-size: 14px; cursor: pointer; text-align: center; margin-top: 8px; }
+
+    /* 免责声明 */
+    .disclaimer { margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(26,26,26,.08); font-size: 12px; color: rgba(26,26,26,.45); line-height: 1.7; text-align: center; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+<script>
+// ============================================================================
+// 人格测试网站生成器框架
+// 用途：0代码基础用户可基于此框架，替换内容后生成自己的独立HTML人格测试网站
+// 核心逻辑：12~20道题 → 多维度计分 → 匹配人格 → 展示结果
+// ============================================================================
+
+// ==================== 【自定义区域 1/5】题目库 ====================
+// 设计建议：
+// 1. 题目数量：建议 12~16 道，太少结果不准，太多用户不耐烦
+// 2. 每道题结构：{ id, title, options:[{ label, text, scores:{维度名:分数} }] }
+// 3. 维度设计：你可以用经典 MBTI（E/I, N/S, T/F, J/P），也可以自创维度
+//    例如：社交度/秩序度/冒险度/情绪稳定度 等
+// 4. 选项数量：建议每题 4~5 个选项，对应不同维度的正向/反向得分
+// 5. 答案分类：同一道题的不同选项，可以对应完全不同的维度，增加趣味性
+
+const questions = [
+  // 示例第1题：生活方式/能量来源类（对应维度：内向 vs 外向）
+  {
+    id: 1,
+    title: "【请替换：周末到了，你的理想开场是？】",
+    options: [
+      { label: "A", text: "【宅家独处选项】", scores: { 内向: 3, 治愈: 2 } },
+      { label: "B", text: "【社交聚会选项】", scores: { 外向: 3, 社交: 2 } },
+      { label: "C", text: "【探索新鲜选项】", scores: { 好奇: 3, 开放: 2 } },
+      { label: "D", text: "【规划整理选项】", scores: { 秩序: 3, 控制: 2 } },
+    ],
+  },
+  // 示例第2题：压力应对方式（对应维度：情绪表达 vs 自我调节）
+  {
+    id: 2,
+    title: "【请替换：遇到烦心事，你的第一反应？】",
+    options: [
+      { label: "A", text: "【找人倾诉选项】", scores: { 外向: 3, 联结: 2 } },
+      { label: "B", text: "【独自消化选项】", scores: { 内向: 3, 自愈: 2 } },
+      { label: "C", text: "【立即解决选项】", scores: { 行动力: 3, 效率: 2 } },
+      { label: "D", text: "【佛系摆烂选项】", scores: { 佛系: 3, 松弛: 2 } },
+    ],
+  },
+  // ... 请继续补充到至少 12 题
+  // 题目类型建议搭配：
+  // - 3~4道：社交偏好类（测内外向）
+  // - 3~4道：生活习惯类（测秩序/随性）
+  // - 2~3道：情绪反应类（测稳定/敏感）
+  // - 2~3道：价值选择类（测理想/现实）
+  // - 1~2道：彩蛋癫题（制造 viral 传播点，如奇葩食物选择、社死场景反应）
+];
+
+// ==================== 【自定义区域 2/5】基础人格库 ====================
+// 设计建议：
+// 1. 人格数量：建议 8~16 个基础人格，覆盖不同维度的组合
+// 2. 每个基础人格必须包含：
+//    - id: 英文标识，建议全小写+下划线，用于结果页定位
+//    - name: 中文人格名（要抓马、有网感、易传播）
+//    - dimensions: 字符串数组，是该人格对应的"维度关键词"
+//    - description: 人格描述（第一人称或判词口吻）
+//    - tagline: 一句金句/标语/批注
+// 3. 匹配逻辑说明：
+//    系统会计算用户在各维度的总分，然后对每个基础人格求
+//    "其 dimensions 在总分中的累加和"，得分最高者即为匹配结果
+
+const personalities = [
+  {
+    id: "example_1",
+    name: "【示例人格：工位无期徒刑犯】",
+    dimensions: ["内向", "秩序", "行动力"],
+    description: "【请替换为该人格的判词式描述...】",
+    tagline: "【一句金句标语】"
+  },
+  {
+    id: "example_2",
+    name: "【示例人格：社交缓刑犯】",
+    dimensions: ["内向", "佛系", "松弛"],
+    description: "【请替换...】",
+    tagline: "【一句金句标语】"
+  },
+  // ... 请补充 8~16 个人格
+];
+
+// ==================== 【自定义区域 3/5】隐藏人格库（可选） ====================
+// 作用：增加惊喜感和传播性。用户如果触发了特定答案组合，会跳出稀有/传说人格
+// 设计建议：
+// 1. 数量：3~5 个为宜
+// 2. rarity（稀有度）："rare"（稀有）| "superRare"（超稀有）| "legendary"（传说）
+// 3. condition 函数：接收 answers 数组（用户每道题选择的选项索引），返回 true/false
+//    例如：return answers[6]===2 && answers[8]===4 表示第7题选C且第9题选E时触发
+// 4. 概率控制：
+//    - rare：100% 触发
+//    - superRare：50% 触发
+//    - legendary：30% 触发（制造稀缺感）
+
+const hiddenPersonalities = [
+  {
+    id: "hidden_1",
+    name: "【隐藏人格示例】",
+    rarity: "legendary",
+    description: "【隐藏人格描述...】",
+    tagline: "【隐藏标语】",
+    condition: (answers) => {
+      // 示例：第3题选A + 第5题选C 时触发
+      return answers[2] === 0 && answers[4] === 2;
+    }
+  }
+];
+
+// ============================================================================
+// 以下为核心算法区域，一般不需要修改，但高级用户可自行扩展
+// ============================================================================
+
+/**
+ * 计分与人格匹配主函数
+ * @param {number[]} answers - 用户每道题选择的选项索引数组
+ * @returns {Object} { personality, isHidden, scores, answers }
+ */
+function calculatePersonality(answers) {
+  const scores = {};
+
+  // 1. 基础计分：遍历所有题目，累加各维度得分
+  answers.forEach((optIdx, qIdx) => {
+    const q = questions[qIdx];
+    const opt = q?.options[optIdx];
+    if (opt?.scores) {
+      Object.entries(opt.scores).forEach(([dim, val]) => {
+        scores[dim] = (scores[dim] || 0) + val;
+      });
+    }
+  });
+
+  // 2. 【可选扩展】癫题加成：某些特殊选项可以额外加权
+  // 示例模板（请根据实际题目索引修改）：
+  // if (answers[6] === 2) { scores.破坏力 = (scores.破坏力||0) + 5; }
+  // if (answers[8] === 4) { scores.叛逆 = (scores.叛逆||0) + 3; }
+
+  // 3. 隐藏人格判定：先检查是否有隐藏人格被触发
+  for (const hidden of hiddenPersonalities) {
+    if (hidden.condition(answers)) {
+      if (hidden.rarity === "legendary") { if (Math.random() > 0.7) continue; }
+      else if (hidden.rarity === "superRare") { if (Math.random() > 0.5) continue; }
+      return { personality: hidden, isHidden: true, scores, answers };
+    }
+  }
+
+  // 4. 基础人格匹配：求每个基础人格的 dimensions 累加和，取最高分
+  let bestMatch = personalities[0];
+  let bestScore = -Infinity;
+  for (const p of personalities) {
+    const total = p.dimensions.reduce((sum, dim) => sum + (scores[dim] || 0), 0);
+    if (total > bestScore) {
+      bestScore = total;
+      bestMatch = p;
+    }
+  }
+
+  // 5. 【可选扩展】强制覆盖规则
+  // 当某个极端维度得分过高时，可以强制匹配特定人格
+  // 示例：if ((scores.破坏力||0) >= 5) bestMatch = 特定人格对象;
+
+  return { personality: bestMatch, isHidden: false, scores, answers };
+}
+
+// ============================================================================
+// UI 渲染区域（单页面应用，无需修改框架结构）
+// ============================================================================
+
+const app = document.getElementById('app');
+let answers = [];
+let current = 0;
+
+function renderHome() {
+  app.innerHTML = `
+    <div class="home-screen">
+      <h1 class="home-title">【品牌名】</h1>
+      <p class="home-subtitle">【副标题 Slogan】</p>
+      <div class="home-divider"></div>
+      <div class="home-card">
+        <p>【N】道趣味拷问，搞出你的专属标签</p>
+        <p class="small">此标签基于你的日常偏好，仅供娱乐参考</p>
+      </div>
+      <button class="btn-primary" onclick="startQuiz()">开始测试</button>
+    </div>
+  `;
+}
+
+function getProgressText(idx) {
+  if (idx < questions.length / 3) return '底牌洗牌中...';
+  if (idx < questions.length * 2 / 3) return '正在亮牌...';
+  return '最后冲刺...';
+}
+
+function renderQuestion() {
+  const q = questions[current];
+  const progress = ((current) / questions.length) * 100;
+  app.innerHTML = `
+    <div>
+      <div class="quiz-header">
+        <span>${getProgressText(current)}</span>
+        <span class="num">${current + 1} / ${questions.length}</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${progress}%"></div></div>
+      <span class="question-tag">第 ${current + 1} 问</span>
+      <h2 class="question-title">${q.title}</h2>
+      <div class="option-list">
+        ${q.options.map((opt, idx) => `
+          <button class="option-btn" onclick="selectOption(${idx})">
+            <span class="option-label">${opt.label}</span>
+            <span>${opt.text}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="disclaimer">
+        本测试纯前端运行，不收集个人信息。结果仅供娱乐参考，不构成专业心理测评。
+      </div>
+    </div>
+  `;
+}
+
+function selectOption(idx) {
+  answers.push(idx);
+  if (current < questions.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    const result = calculatePersonality(answers);
+    renderResult(result);
+  }
+}
+
+function renderResult({ personality, isHidden }) {
+  const rarityMap = {
+    rare: { text: '★ 稀有 ★', bg: '#dbeafe', color: '#1d4ed8' },
+    superRare: { text: '★ 超稀有 ★', bg: '#f3e8ff', color: '#7e22ce' },
+    legendary: { text: '★ 传说 ★', bg: 'rgba(212,175,55,.18)', color: '#a67c00' },
+  };
+  const rarity = isHidden ? rarityMap[personality.rarity] : null;
+
+  app.innerHTML = `
+    <div>
+      <div class="result-top">
+        <div style="font-size:13px;color:rgba(26,26,26,.5);margin-bottom:8px;">测试结果</div>
+        ${rarity ? `<div class="rarity-tag" style="background:${rarity.bg};color:${rarity.color}">${rarity.text}</div>` : ''}
+        <div class="result-placeholder">🎭</div>
+        <div class="result-name">${personality.name}</div>
+        <div class="result-divider"></div>
+      </div>
+      <div class="result-card">
+        <p class="result-desc">${personality.description}</p>
+        <div class="result-note">
+          <div class="label">批注</div>
+          <div class="text">${personality.tagline}</div>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:8px;" onclick="startQuiz()">再测一次</button>
+      <button class="btn-ghost" onclick="renderHome()">返回首页</button>
+      <div class="disclaimer">
+        本测试纯前端运行，不收集个人信息。结果仅供娱乐参考，不构成专业心理测评。
+      </div>
+    </div>
+  `;
+}
+
+function startQuiz() {
+  answers = [];
+  current = 0;
+  renderQuestion();
+}
+
+// 启动应用
+renderHome();
+</script>
+</body>
+</html>
